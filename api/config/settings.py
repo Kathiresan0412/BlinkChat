@@ -11,7 +11,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'dev-secret-change-in-production')
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# ALLOWED_HOSTS: from env, and on Vercel add .vercel.app so DisallowedHost doesn't block
+_allowed = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+if os.environ.get('VERCEL_URL'):
+    _allowed.append(os.environ.get('VERCEL_URL').strip())
+    _allowed.append('.vercel.app')  # allow *.vercel.app
+ALLOWED_HOSTS = [h.strip() for h in _allowed if h.strip()]
 
 INSTALLED_APPS = [
     'daphne',
