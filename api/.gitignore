@@ -1,0 +1,8 @@
+# Environment and secrets - never commit
+.env
+.env.local
+*.pyc
+__pycache__/
+db.sqlite3
+.venv/
+venv/

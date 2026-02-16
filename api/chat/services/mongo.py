@@ -11,7 +11,7 @@ _client = None
 def get_mongo_db() -> Database:
     global _client
     if _client is None:
-        uri = os.environ.get('MONGO_URI', 'mongodb://127.0.0.1:27017')
+        uri = os.environ.get('MONGODB_URI') or os.environ.get('MONGO_URI', 'mongodb://127.0.0.1:27017')
         db_name = os.environ.get('MONGO_DB_NAME', 'blinkchat')
         _client = MongoClient(uri)
         return _client[db_name]

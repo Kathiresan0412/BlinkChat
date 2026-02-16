@@ -91,9 +91,11 @@ REST_FRAMEWORK = {
 }
 
 from datetime import timedelta
+_jwt_signing_key = os.environ.get('JWT_SECRET') or SECRET_KEY
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'SIGNING_KEY': _jwt_signing_key,
 }
 
 # Channels - Redis as channel layer
@@ -107,6 +109,9 @@ CHANNEL_LAYERS = {
 # Redis URL for matchmaking queue (can use same Redis)
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')
 
-# MongoDB for match logs / reports (optional)
-MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://127.0.0.1:27017')
+# MongoDB for match logs (optional); MONGODB_URI or MONGO_URI
+MONGO_URI = os.environ.get('MONGODB_URI') or os.environ.get('MONGO_URI', 'mongodb://127.0.0.1:27017')
 MONGO_DB_NAME = os.environ.get('MONGO_DB_NAME', 'blinkchat')
+
+# Port for ASGI (Daphne); use PORT from host (e.g. Vercel/Railway) or default 8000
+PORT = int(os.environ.get('PORT', '8000'))
