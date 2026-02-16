@@ -1,8 +1,21 @@
+import re
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import UserProfile, Report
 
 User = get_user_model()
+
+# Django username: letters, numbers, @/./+/-/_ only
+USERNAME_ALLOWED = re.compile(r'^[\w.@+-]+\Z', re.UNICODE)
+
+
+def sanitize_username(value):
+    """Convert to valid Django username: replace spaces with _, remove disallowed chars."""
+    if not value or not isinstance(value, str):
+        return value
+    s = value.strip().replace(' ', '_')
+    s = ''.join(c for c in s if USERNAME_ALLOWED.match(c) or c in '.@+-')
+    return s or value.strip().replace(' ', '_')[:150]
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -21,6 +34,18 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email', 'password')
+
+    def validate_username(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError('Username is required.')
+        sanitized = sanitize_username(value)
+        if len(sanitized) > 150:
+            sanitized = sanitized[:150]
+        if not sanitized:
+            raise serializers.ValidationError(
+                'Username may contain only letters, numbers, and @/./+/-/_ characters.'
+            )
+        return sanitized
 
     def create(self, validated_data):
         user = User.objects.create_user(
