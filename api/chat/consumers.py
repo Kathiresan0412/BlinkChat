@@ -85,6 +85,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'session_id': session_id,
                     'room_group_name': self.room_group_name,
                     'partner': user2 if user1['channel_name'] == self.channel_name else user1,
+                    'is_initiator': True,
                 })
                 await self.channel_layer.group_send(self.room_group_name, {
                     'type': 'session_matched',
@@ -137,7 +138,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 })
 
     async def matched_from_queue(self, event):
-        """Called when we were in queue and someone matched with us."""
+        """Called when we were in queue and someone matched with us (we are initiator for WebRTC)."""
         self.session_id = event['session_id']
         self.room_group_name = event['room_group_name']
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
@@ -145,13 +146,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'type': 'matched',
             'session_id': event['session_id'],
             'partner': event['partner'],
+            'is_initiator': event.get('is_initiator', True),
         }))
 
     async def session_matched(self, event):
+        is_initiator = event['user1']['channel_name'] == self.channel_name
         await self.send(text_data=json.dumps({
             'type': 'matched',
             'session_id': event['session_id'],
-            'partner': event['user2'] if event['user1']['channel_name'] == self.channel_name else event['user1'],
+            'partner': event['user2'] if is_initiator else event['user1'],
+            'is_initiator': is_initiator,
         }))
 
     async def chat_message(self, event):

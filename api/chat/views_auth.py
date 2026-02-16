@@ -29,11 +29,12 @@ class MeView(generics.RetrieveAPIView):
     def get(self, request):
         try:
             profile = UserProfile.objects.get(user=request.user)
-            data = UserProfileSerializer(profile).data
+            data = {**UserProfileSerializer(profile).data, 'user_id': request.user.id}
         except UserProfile.DoesNotExist:
             data = {
                 'username': request.user.username,
                 'display_name': request.user.username,
                 'created_at': None,
+                'user_id': request.user.id,
             }
         return Response(data)
